@@ -1,0 +1,5 @@
+role, url, method
+admin, /api/users/params, GET
+admin, /api/users/, POST
+admin, /api/users/, GET
+
