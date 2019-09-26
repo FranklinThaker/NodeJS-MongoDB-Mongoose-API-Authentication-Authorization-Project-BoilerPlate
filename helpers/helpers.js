@@ -1,20 +1,22 @@
 /* eslint-disable radix */
-exports.successResponse = function(req, res, data, code = 200) {
+exports.successResponse = function (req, res, data, message = "Operation successfully completed!", code = 200) {
+  res.status(code)
   res.send({
-  code,
-  data,
-  success: true,
-});
+    code,
+    success: true,
+    message,
+    data,
+  });
 }
 
-exports.errorResponse = function(req, res, errorMessage, error={}, code = 500) { 
-res.send({
-  code,
-  errorMessage,
-  error,
-  data: null,
-  success: false,
-});
+exports.errorResponse = function (req, res, errorMessage, code = 500) {
+  res.status(code)
+  res.send({
+    code,
+    errorMessage,
+    data: null,
+    success: false,
+  });
 }
 
 exports.validateEmail = function(email) {
