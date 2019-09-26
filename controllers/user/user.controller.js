@@ -16,13 +16,13 @@ exports.register = async (req, res) => {
 
     const data = await usersModel.findOne({ email: user.email })
     if (data) {
-      throw new Error('User already exists with same email');
+      return errorResponse(req, res, "User already exists with same email", 409);
     }
 
     const newUser = await user.save();
     return successResponse(req, res, { newUser });
   } catch (error) {
-    return errorResponse(req, res, error.message, error);
+    return errorResponse(req, res, error.message);
   }
 };
 
@@ -33,17 +33,17 @@ exports.login = async (req, res) => {
     });
 
     if (!user) {
-      throw new Error('Incorrect Username/Password');
+      return errorResponse(req, res, "Incorrect Username/Password", 401);
     }
 
     user.comparePassword(req.body.password, (err, isMatch) => {
       if (isMatch && !err) {
         let token = jwt.sign(JSON.parse(JSON.stringify(user)), process.env.SECRET, { expiresIn: 3600 });
         jwt.verify(token, process.env.SECRET, (error, data) => {
-          if(error==null){
+          if (error == null) {
             delete data.password;
             return successResponse(req, res, { user, token, role: data.role });
-          }else{
+          } else {
             return errorResponse(req, res, 'Authentication failed. Wrong password.', 401);
           }
         });
@@ -58,11 +58,12 @@ exports.findById = async (req, res) => {
   try {
     const user = await usersModel.findOne({ _id: req.params.id });
     if (!user) {
-      throw new Error('User does not exist!');
+      return errorResponse(req, res, "User does not exist!", 404);
+
     }
     return successResponse(req, res, { user });
   } catch (error) {
-    return errorResponse(req, res, error.message, error);
+    return errorResponse(req, res, error.message);
   }
 };
 
@@ -70,10 +71,11 @@ exports.getAll = async (req, res) => {
   try {
     const user = await usersModel.find();
     if (!user) {
-      throw new Error('No records found!');
+      return errorResponse(req, res, "No records found!", 404);
+
     }
     return successResponse(req, res, { user });
   } catch (error) {
-    return errorResponse(req, res, error.message, error);
+    return errorResponse(req, res, error.message);
   }
 };
