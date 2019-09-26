@@ -22,7 +22,6 @@ Users.pre('save', function (next) {
 });
 
 Users.methods.comparePassword = function (passw, cb) {
-  // return callback(null, bcrypt.compareSync(plaintext, this.password));
   bcrypt.compare(passw, this.password, (err, isMatch) => {
     if (err) {
       return cb(err);
