@@ -1,7 +1,37 @@
-const { errorResponse } = require('../helpers/helpers');
+const { successResponse, errorResponse } = require('../helpers/helpers');
 const jwt = require('jsonwebtoken');
 const usersModel = require('../models/users');
 var authorizationData = []
+
+exports.rememberMeTokenVerification = async function (req, res, next) {
+  try {
+    let decoded;
+    headers = req.headers;
+    if (req.headers && req.headers.authorization) {
+      const token = req.headers.authorization;
+      decoded = jwt.verify(token, process.env.SECRET);
+
+      delete decoded.password;
+      req.user = decoded;
+      const user = await usersModel.findOne({ _id: decoded._id });
+     
+      if (user) {
+        newUser = user.toObject()
+        if (user.status == true) {
+          delete newUser.password;
+          return successResponse(req, res, { newUser, token }, "You're now logged in!");
+        }
+      } else {
+        return errorResponse(req, res, "User does not exist!", 401);
+      }
+    } else {
+      return next();
+    }
+  }
+  catch (error) {
+    return errorResponse(req, res, error.message, 401);
+  }
+}
 
 exports.authentication = async function (req, res, next) {
   let decoded;
@@ -15,8 +45,9 @@ exports.authentication = async function (req, res, next) {
   } catch (error) {
     return errorResponse(req, res, 'Invalid token!', 401);
   }
+  delete decoded.password;
   req.user = decoded;
-  const user = await usersModel.findOne({ id: req.user.id });
+  const user = await usersModel.findOne({ _id: decoded._id });
 
   if (!user) {
     return errorResponse(req, res, 'User is not found in system', 401);
@@ -30,7 +61,6 @@ exports.authentication = async function (req, res, next) {
 
 exports.getROLES = async function () {
   var path = require('path')
-  var fs = require('fs')
   var csvPath = path.resolve(path.join(__dirname, "policy.csv"));
 
   const csv = require('csvtojson')
@@ -71,5 +101,3 @@ exports.authorization = async function (req, res, next) {
   }
   return errorResponse(req, res, "You're not authorized", 401);
 }
-
-
